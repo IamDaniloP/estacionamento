@@ -9,8 +9,8 @@ API REST desenvolvida com Spring Boot para controle de um estacionamento. O proj
 - Spring Web MVC
 - Spring Data JPA
 - Maven
-- H2 Database para execucao local em memoria
-- PostgreSQL como banco relacional suportado pelo projeto
+- PostgreSQL para persistencia da API
+- H2 Database para testes em memoria
 - Springdoc OpenAPI para documentacao da API
 
 ## Funcionalidades
@@ -36,6 +36,12 @@ API REST desenvolvida com Spring Boot para controle de um estacionamento. O proj
 
 ## Como executar
 
+Antes de iniciar a API, crie um container PostgreSQL:
+
+```bash
+docker run --name estacionamento-postgres -e POSTGRES_DB=estacionamento -e POSTGRES_USER=estacionamento -e POSTGRES_PASSWORD=estacionamento -p 5432:5432 -d postgres:16
+```
+
 Execute o projeto com o Maven Wrapper:
 
 ```bash
@@ -48,7 +54,19 @@ No Windows:
 mvnw.cmd spring-boot:run
 ```
 
-Por padrao, a aplicacao usa banco H2 em memoria, configurado em `src/main/resources/application.properties`.
+Por padrao, a aplicacao persiste os dados no PostgreSQL local, configurado em `src/main/resources/application.properties`.
+
+Configuracao padrao do PostgreSQL:
+
+- JDBC URL: `jdbc:postgresql://localhost:5432/estacionamento`
+- Usuario: `estacionamento`
+- Senha: `estacionamento`
+
+As configuracoes podem ser sobrescritas por variaveis de ambiente:
+
+- `DATABASE_URL`
+- `DATABASE_USERNAME`
+- `DATABASE_PASSWORD`
 
 ## Acessos locais
 
@@ -57,13 +75,6 @@ Com a aplicacao em execucao:
 - API: `http://localhost:8080`
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-- Console H2: `http://localhost:8080/h2-console`
-
-Configuracao padrao do H2:
-
-- JDBC URL: `jdbc:h2:mem:estacionamento`
-- Usuario: `sa`
-- Senha: vazia
 
 ## Endpoints principais
 
@@ -143,12 +154,20 @@ As tabelas persistidas pelo projeto sao:
 
 O script para criacao das tabelas no PostgreSQL esta em [scripts/create_tables_postgres.sql](scripts/create_tables_postgres.sql).
 
+Com o container em execucao, o script pode ser aplicado pelo PowerShell:
+
+```powershell
+Get-Content scripts\create_tables_postgres.sql | docker exec -i estacionamento-postgres psql -U estacionamento -d estacionamento
+```
+
 ## Documentacao complementar
 
 - [Relatorio de classes e tabelas](docs/relatorio-classes-tabelas.md)
 - [Script de criacao das tabelas PostgreSQL](scripts/create_tables_postgres.sql)
 
 ## Testes
+
+Os testes usam a configuracao de `src/test/resources/application.properties`. Essa configuracao aponta para um banco H2 em memoria, em modo de compatibilidade com PostgreSQL, para que testes de integracao nao dependam do container PostgreSQL.
 
 Execute os testes com:
 
